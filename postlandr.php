@@ -29,6 +29,7 @@ $db->exec('
 //$result = $db->query('SELECT bar FROM foo');
 //var_dump($result->fetchArray());
 
+
 if (isset($_POST['name']))
 	$name = $_POST['name'];
 if (isset($_POST['passone']))	
