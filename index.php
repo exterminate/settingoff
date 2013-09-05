@@ -29,10 +29,21 @@ lasttime_time
 if($session()){
         if(!isset($_GET['id']) {
                 $_GET['id'] = "";
+                
+                // have you forgot your unique id? Log in
+                
+                // need to register?
+                
         }else{
                 $id = $_GET['id'];
                 //find saved information that from database that matches id.
                 $sql = "SELECT * FROM data WHERE id = '$id'";
+                
+                // to create a new "set off" or edit an old one, log in
+                
+                echo "<h3>Log in to modify your settings.</h3>";
+                // form
+      
                 
         }
 }
