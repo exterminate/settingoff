@@ -3,30 +3,12 @@
 <head>
 	<title>Setting off</title>
 	<link rel="stylesheet" href="style.css">
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js" type="text/javascript"></script>
 </head>
 <body>
 <?php
 
-
-/**
- * Simple example of extending the SQLite3 class and changing the __construct
- * parameters, then using the open method to initialize the DB.
- */
-class MyDB extends SQLite3
-{
-    function __construct()
-    {
-        $this->open('mysqlitedb.db');
-    }
-}
-
-$db = new MyDB();
-
-$db->exec('CREATE TABLE foo (bar STRING)');
-$db->exec("INSERT INTO foo (bar) VALUES ('This is a test')");
-
-$result = $db->query('SELECT bar FROM foo');
-var_dump($result->fetchArray());
+include "postlandr.php";
 
 //maybe look at this http://www.tutorialspoint.com/sqlite/sqlite_php.htm
 
@@ -50,12 +32,31 @@ lasttime_time
 
 <?php 
 // if logged in show options, set off
-if($session()){
-        if(!isset($_GET['id']) {
+//if($session){
+        if(!isset($_GET['id'])) {
                 $_GET['id'] = "";
                 
                 // have you forgot your unique id? Log in
-                
+?>
+<div class='register-form'>				
+	<form action="postlandr.php" method="POST">
+		<label>Name:</label><br><input type="text" name="name"><br>
+		<label>E-mail:</label><br><input type="email" name="email"><br>
+		<label>Enter Password:</label><br><input type="password" name="passone"><br>
+		<label>Enter password again:</label><br><input type="password" name="passtwo"><br>
+		<input type="submit" name="register" value="Register">
+	</form>
+	<button id="toggle-register">Login</button>
+</div>
+<div class='login-form'>				
+	<form action="postlandr.php" method="POST">		
+		<label>E-mail:</label><br><input type="email" name="email"><br>
+		<label>Enter Password:</label><br><input type="password" name="passone"><br>
+		<input type="submit" name="login" value="Login">
+	</form>
+	<button id="toggle-login">Register</button>
+</div>
+<?php                
                 // need to register?
                 
         }else{
@@ -69,8 +70,8 @@ if($session()){
                 // form
       
                 
-        }
-}
+        
+//}
 
 ?>
 
@@ -78,10 +79,25 @@ if($session()){
 <button id="set-off">Set off</button>
 
 <?php
+		}
 
 // display partners details here
 
 ?>
+<script>
 
+$(document).ready(function(){
+	$("#toggle-login").click(function(){
+		$(this).parent().hide();
+		$(".register-form").show();	
+	});
+	$("#toggle-register").click(function(){
+		$(this).parent().hide();	
+		$(".login-form").show();
+	});
+	
+});
+
+</script>
 </body>
 </html>
