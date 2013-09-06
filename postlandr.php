@@ -43,8 +43,18 @@ $id = rand(11111,99999);
 //$result = $db->exec("SELECT id FROM users WHERE id = '$id'");
 $result = $db->query("SELECT COUNT(id) as count FROM users WHERE id = '$id'");
 $row = $result->fetchArray();
-$numRows = $row['count'];
-echo $numRows;
+
+// validation
+while($row['count'] === 0){
+  if (!preg_match('/[^A-Za-z0-9]/', $name))
+    die("Please only use English letters and numbers"); 
+  if (!preg_match('/[^A-Za-z0-9]/', $passone))
+    die("Please only use English letters and numbers");
+  if ($passone !== $passtwo)
+    die("Your passwords do not match. Please go back and try again."); 
+    
+  $db->exec("INSERT INTO users VALUES ('$id','$email','$name','$passone','$todayTime','$todayDate','$todayTime')");
+}
 
 
 if(isset($_POST['login'])){
