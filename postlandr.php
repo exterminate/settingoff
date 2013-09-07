@@ -3,10 +3,16 @@
 $todayTime = date("H:i");
 $todayDate = date("j F Y");
 
-/**
- * Simple example of extending the SQLite3 class and changing the __construct
- * parameters, then using the open method to initialize the DB.
- */
+function getBackToPage($errormsg) {
+	header("Location: index.php?error=$errormsg"); /* Redirect browser */
+	exit;
+}	
+
+function getBackToPageOK($goodmsg) {
+	header("Location: index.php?error=$goodmsg"); /* Redirect browser */
+	exit;
+}	
+
 $error = "uh oh";
 try
 {
@@ -37,10 +43,14 @@ $db->exec('
 if (isset($_POST['name']))
 	$name = $_POST['name'];
 if (isset($_POST['passone'])){	
-	if (strlen($_POST['passone']) < 6)
-		die("Your password must be more than 5 characters.");
-	else
-		$passone = md5($_POST['passone']);		
+	if (strlen($_POST['passone']) < 6) // password validation
+		getBackToPage("notenoughchars");
+	else{
+		if (!preg_match('/[A-Za-z0-9]/', $_POST['passone']))
+			getBackToPage("lettersandnumberspass");
+		else
+			$passone = md5($_POST['passone']);
+	}		
 }
 if (isset($_POST['passtwo']))
 	$passtwo = md5($_POST['passtwo']);
@@ -57,29 +67,41 @@ if(isset($_POST['register'])){
 	while($row['count'] == 0){
 		$emailQuery = $db->query("SELECT COUNT(email) as count FROM users WHERE email = '$email'");
 		$emailRow = $emailQuery->fetchArray();
-		if ($emailRow['count'] != 0){
-			header("Location: index.php?error=emailalreadyregistered"); /* Redirect browser */
-			exit;
-		}
+		if ($emailRow['count'] != 0)
+			getBackToPage("emailalreadyregistered");	
 		if (!preg_match('/[A-Za-z0-9]/', $name))
-			die("Please only use English letters and numbers for your name."); 
-	  	if (!preg_match('/[A-Za-z0-9]/', $passone))
-			die("Please only use English letters and numbers.");
+			getBackToPage("lettersandnumbersname");
 	  	if ($passone !== $passtwo)
-			die("Your passwords do not match. Please go back and try again."); 
+			getBackToPage("passnotmatch");
 		$query = "INSERT INTO users 
 	  		(id,    email,   name,   password,  todayTime,   todayDate,   lastTimeTime) VALUES 
 	  		('$id','$email','$name','$passone','$todayTime','$todayDate','$todayTime')";
 	  	$db->exec($query);
 		$row['count'] = 1;
 		
+		
 	}
 	$id = "";
+	getBackToPageOK("thanks");
 }
 
 if(isset($_POST['login'])){
-	//$result = $db->exec("INSERT INTO users VALUES ('This is a test')");
-	//var_dump($result->fetchArray());
+	$result = $db->query("SELECT COUNT(email) as count FROM users WHERE email = '$email'");
+	$row = $result->fetchArray();
+	if($row['count'] == 1){
+		$checkPassword = $db->query("SELECT * FROM users WHERE email = '$email'");
+		while ($rowPass = $checkPassword->fetchArray()) {
+			if ($rowPass['password'] == $passone)
+				echo "start session";
+			else
+				getBackToPage("passnotright");
+		}
+			
+		
+	}else
+		getBackToPage("noemailregistered");	
+
+
 }else
 	$_POST['login'] = "";
 

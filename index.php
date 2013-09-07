@@ -37,11 +37,44 @@ if ( isset($_GET['error']) ) {
 		case "emailalreadyregistered":
 			$errorMessage = "An account has been registered with this email address. Reset password or try again.";
 			break;
+		case "lettersandnumbersname":
+			$errorMessage = "Please only use English letters and numbers for your name.";	
+			break;
+		case "lettersandnumberspass":
+			$errorMessage = "Please only use English letters and numbers for your password.";	
+			break;	
+		case "notenoughchars":	
+			$errorMessage = "Your password must be more than 5 characters.";
+			break;		
+		case "passnotmatch":	
+			$errorMessage = "Your passwords do not match. Please go back and try again.";
+			break;
+		case "passnotright":	
+			$errorMessage = "Your password does not match the password on out system. Reset password or try again.";
+			break;			
+		case "noemailregistered":				
+			$errorMessage = "Your email address is not in our system. Why not try registering?";
+			break;
+		case "thanks":				
+			$errorMessage = "Thank you for registering. Please log in to add some settings.";
+			break;			
 	}
 	
-	echo "<div class='error-warning'><p>$errorMessage</p></div>";
+	echo "<div class='error-warning paddingTen'><p>$errorMessage <span id='hide' class='pointer' alt='hide' title='hide'>[X]</span></p></div>";	
 
 }
+
+if ( isset($_GET['msg']) ) {
+	$good = $_GET['msg'];
+	switch($good){
+		case "thanks":				
+			$goodMessage = "Thank you for registering. Please log in to add some settings.";
+			break;
+	}
+	
+	echo "<div class='good-msg paddingTen'><p>$goodMessage <span id='hide' class='pointer' alt='hide' title='hide'>[X]</span></p></div>";	
+}				
+
 ?>
 <h1>Setting off?</h1>
 <h2>Need to let a loved one know what time you've set of to meet them? You can now, with this handy app.</h2>
@@ -132,7 +165,6 @@ if($result = $db->query($query))
   {
     print("Email: {$row['email']} <br />" .
           "Name: {$row['name']} <br />".
-          "Name: {$row['0']} <br />".
           "Time: {$row['todayTime']} <br /><br />");
   }
 }
@@ -154,7 +186,11 @@ $(document).ready(function(){
 		$(this).parent().hide();	
 		$(".login-form").show();
 	});
-	
+	// hide parent of anything with id=hide 
+	$("#hide").click(function(){
+		$(this).parent().parent().slideUp('fast');
+	});
+
 });
 
 </script>

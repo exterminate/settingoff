@@ -3,10 +3,23 @@
 	margin: 0;
 }
 
+body {
+	font-family: sans-serif;
+}
+
 .register-form {
 	display: none;
 }
 
 .error-warning {
-	
+	background: #F07057;
+	color: #F2F2E8;
+}
+
+.paddingTen {
+	padding: 10px;
+}
+
+.pointer {
+	cursor: pointer;
 }
