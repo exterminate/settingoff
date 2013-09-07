@@ -1,3 +1,5 @@
+
+
 <!doctype html>
 <html>
 <head>
@@ -8,7 +10,7 @@
 <body>
 <?php
 
-include "postlandr.php";
+//include "postlandr.php";
 
 
 //maybe look at this http://www.tutorialspoint.com/sqlite/sqlite_php.htm
@@ -27,6 +29,20 @@ lasttime_time
 */
 
 ?>
+
+<?php
+if ( isset($_GET['error']) ) {
+	$error = $_GET['error'];
+	switch($error){
+		case "emailalreadyregistered":
+			$errorMessage = "An account has been registered with this email address. Reset password or try again.";
+			break;
+	}
+	
+	echo "<div class='error-warning'><p>$errorMessage</p></div>";
+
+}
+?>
 <h1>Setting off?</h1>
 <h2>Need to let a loved one know what time you've set of to meet them? You can now, with this handy app.</h2>
 <p>Sign up, login, share the link and save the page to your smart phone's home screen.</p>
@@ -41,10 +57,13 @@ lasttime_time
 ?>
 <div class='register-form'>				
 	<form action="postlandr.php" method="POST">
-		<label>Name:</label><br><input type="text" name="name"><br>
+		<label>Name:</label><br><input type="text" name="name">
+		<!-- validate for 2 or more letters --><br>
 		<label>E-mail:</label><br><input type="email" name="email"><br>
-		<label>Enter Password:</label><br><input type="password" name="passone"><br>
-		<label>Enter password again:</label><br><input type="password" name="passtwo"><br>
+		<label>Enter Password:</label><br><input type="password" name="passone">
+		<!-- validate for 6 or more letters --><br>
+		<label>Enter password again:</label><br><input type="password" name="passtwo">
+		<!-- validate matching passwords --><br>
 		<input type="submit" name="register" value="Register">
 	</form>
 	<button id="toggle-register">Login</button>
@@ -83,6 +102,45 @@ lasttime_time
 		}
 
 // display partners details here
+
+
+class MyDB extends SQLite3
+{
+    function __construct()
+    {
+        $this->open('myDatabase.db');
+    }
+}
+
+$db = new MyDB();
+$db->exec('
+	CREATE TABLE if not exists users (
+	id INT PRIMARY KEY NOT NULL,
+ 	email TEXT NOT NULL,
+ 	name TEXT NOT NULL,
+ 	password CHAR(32),
+ 	todayTime TEXT NOT NULL,
+ 	todayDate TEXT NOT NULL,
+ 	lastTimeTime TEXT NOT NULL
+ 	)');
+$query = 'SELECT * FROM users'; 	
+//$result = $db->query($query);
+
+if($result = $db->query($query))
+{
+  while($row = $result->fetchArray())
+  {
+    print("Email: {$row['email']} <br />" .
+          "Name: {$row['name']} <br />".
+          "Name: {$row['0']} <br />".
+          "Time: {$row['todayTime']} <br /><br />");
+  }
+}
+else
+{
+  die($error);
+}
+
 
 ?>
 <script>
