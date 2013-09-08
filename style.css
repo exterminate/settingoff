@@ -7,11 +7,11 @@ body {
 	font-family: sans-serif;
 }
 
-.register-form {
+.register-form,.connect-form {
 	display: none;
 }
 
-.error-warning {
+.error-warning,.good-msg {
 	background: #F07057;
 	color: #F2F2E8;
 }

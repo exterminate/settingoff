@@ -1,4 +1,18 @@
+<?php 
 
+	session_start();
+	include "functions.php";
+	
+class MyDB extends SQLite3
+{
+    function __construct()
+    {
+        $this->open('myDatabase.db');
+    }
+}
+	
+	$db = new MyDB();
+?>
 
 <!doctype html>
 <html>
@@ -55,9 +69,10 @@ if ( isset($_GET['error']) ) {
 		case "noemailregistered":				
 			$errorMessage = "Your email address is not in our system. Why not try registering?";
 			break;
-		case "thanks":				
-			$errorMessage = "Thank you for registering. Please log in to add some settings.";
+		case "nomatchingid":				
+			$errorMessage = "This link .";
 			break;			
+
 	}
 	
 	echo "<div class='error-warning paddingTen'><p>$errorMessage <span id='hide' class='pointer' alt='hide' title='hide'>[X]</span></p></div>";	
@@ -82,36 +97,56 @@ if ( isset($_GET['msg']) ) {
 
 <?php 
 // if logged in show options, set off
-//if($session){
-        if(!isset($_GET['id'])) {
-                $_GET['id'] = "";
-                
-                // have you forgot your unique id? Log in
-?>
-<div class='register-form'>				
-	<form action="postlandr.php" method="POST">
-		<label>Name:</label><br><input type="text" name="name">
-		<!-- validate for 2 or more letters --><br>
-		<label>E-mail:</label><br><input type="email" name="email"><br>
-		<label>Enter Password:</label><br><input type="password" name="passone">
-		<!-- validate for 6 or more letters --><br>
-		<label>Enter password again:</label><br><input type="password" name="passtwo">
-		<!-- validate matching passwords --><br>
-		<input type="submit" name="register" value="Register">
-	</form>
-	<button id="toggle-register">Login</button>
-</div>
-<div class='login-form'>				
-	<form action="postlandr.php" method="POST">		
-		<label>E-mail:</label><br><input type="email" name="email"><br>
-		<label>Enter Password:</label><br><input type="password" name="passone"><br>
-		<input type="submit" name="login" value="Login">
-	</form>
-	<button id="toggle-login">Register</button>
-</div>
-<?php                
-                // need to register?
-                
+
+
+
+if(isset($_GET['id'])){
+	$id = $_GET['id'];
+	if(isset($_SESSION['name'])){
+		$logInName = $_SESSION['name'];
+		echo "
+		<h3>Hello, $logInName</h3>
+		<nav class='nav'>
+			<a href='#' alt='make home'>Add home</a>
+			<a href='#' id='connect' alt='Connect'>Connect</a>
+			<a href='#' alt='delete'>Delete</a>
+			<a href='logout.php' alt='logout'>Logout</a>
+		</nav>
+		";
+		
+		// look for pre-existing links
+		$result = $db->query("SELECT COUNT(email) as count FROM users WHERE id = '$id'");
+		
+		while ($row = $result->fetchArray()) {
+			if ($row['count'] == 0){
+				echo "<p>You have not set up any connections yet</p>";
+			}else{
+				// show connection
+			}
+		}	
+	}else{
+		loginOrRegister();
+	}	
+	
+}else{                             
+
+	if(isset($_SESSION['name'])){
+		$logInName = $_SESSION['name'];
+		echo "
+		<h3>Hello, $logInName</h3>
+		<nav class='nav'>
+			<a href='#' alt='make home'>Add home</a>
+			<a href='#' id='connect' alt='Connect'>Connect</a>
+			<a href='#' alt='delete'>Delete</a>
+			<a href='logout.php' alt='logout'>Logout</a>
+		</nav>";
+		
+		makeConnect();
+		
+	}else{
+		loginOrRegister();
+	}	
+/*                
         }else{
                 $id = $_GET['id'];
                 //find saved information that from database that matches id.
@@ -123,20 +158,20 @@ if ( isset($_GET['msg']) ) {
                 // form
       
                 
-        
-//}
+*/        
+}
 
 ?>
 
 
 <button id="set-off">Set off</button>
-
+<hr>
 <?php
-		}
+//		}
 
 // display partners details here
 
-
+/*
 class MyDB extends SQLite3
 {
     function __construct()
@@ -145,7 +180,8 @@ class MyDB extends SQLite3
     }
 }
 
-$db = new MyDB();
+*/
+
 $db->exec('
 	CREATE TABLE if not exists users (
 	id INT PRIMARY KEY NOT NULL,
@@ -189,6 +225,11 @@ $(document).ready(function(){
 	// hide parent of anything with id=hide 
 	$("#hide").click(function(){
 		$(this).parent().parent().slideUp('fast');
+	});
+	// show id=connect 
+	$("#connect").click(function(){
+		$(".connect-form").show();
+		
 	});
 
 });

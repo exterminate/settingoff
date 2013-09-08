@@ -3,15 +3,7 @@
 $todayTime = date("H:i");
 $todayDate = date("j F Y");
 
-function getBackToPage($errormsg) {
-	header("Location: index.php?error=$errormsg"); /* Redirect browser */
-	exit;
-}	
-
-function getBackToPageOK($goodmsg) {
-	header("Location: index.php?error=$goodmsg"); /* Redirect browser */
-	exit;
-}	
+include "functions.php";
 
 $error = "uh oh";
 try
@@ -34,6 +26,15 @@ $db->exec('
  	todayDate TEXT NOT NULL,
  	lastTimeTime TEXT NOT NULL
  	)');
+ 	
+$db->exec('
+	CREATE TABLE if not exists connection (
+	id INT PRIMARY KEY NOT NULL,
+ 	connectionNo TEXT NOT NULL,
+ 	dateCreated TEXT NOT NULL,
+ 	home TEXT NOT NULL
+ 	)');
+ 	 	
 //$db->exec("INSERT INTO foo (bar) VALUES ('This is a test')");
 
 //$result = $db->query('SELECT bar FROM foo');
@@ -91,9 +92,12 @@ if(isset($_POST['login'])){
 	if($row['count'] == 1){
 		$checkPassword = $db->query("SELECT * FROM users WHERE email = '$email'");
 		while ($rowPass = $checkPassword->fetchArray()) {
-			if ($rowPass['password'] == $passone)
-				echo "start session";
-			else
+			if ($rowPass['password'] == $passone){
+				//echo "start session";
+				session_start();
+				$_SESSION['name'] = $rowPass['name'];
+				getBackToPageOK("login");
+			}else
 				getBackToPage("passnotright");
 		}
 			
@@ -104,6 +108,12 @@ if(isset($_POST['login'])){
 
 }else
 	$_POST['login'] = "";
+
+
+if(isset($_POST['connect'])){
+	
+}else
+	$_POST['connect'] = "";
 
 
 $db->close();
