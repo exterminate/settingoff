@@ -39,13 +39,14 @@ function getBackToPageOK($goodmsg) {
 	exit;
 }	
 
-function makeConnect(){
+function makeConnect($id,$logInName,$email){
 	echo '
 	<div class="connect-form">	
-		<form action="postlandr.php" method="POST">
+		<form action="postlandr.php?id='.$id.'&name='.$logInName.'&email='.$email.'" method="POST">
 			<label>E-mail:</label><br><input type="email" name="email">
 			<input type="submit" name="connect" value="Connect">
 		</form>
+		<button id="connecthide">Hide</button>
 	</div>';
 }
 

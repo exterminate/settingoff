@@ -24,21 +24,16 @@ $db->exec('
  	password CHAR(32),
  	todayTime TEXT NOT NULL,
  	todayDate TEXT NOT NULL,
- 	lastTimeTime TEXT NOT NULL
+ 	lastTimeTime TEXT NOT NULL,
+ 	home TEXT NOT NULL
  	)');
  	
 $db->exec('
 	CREATE TABLE if not exists connection (
-	id INT PRIMARY KEY NOT NULL,
+	email PRIMARY KEY NOT NULL,
  	connectionNo TEXT NOT NULL,
- 	dateCreated TEXT NOT NULL,
- 	home TEXT NOT NULL
+ 	dateCreated TEXT NOT NULL
  	)');
- 	 	
-//$db->exec("INSERT INTO foo (bar) VALUES ('This is a test')");
-
-//$result = $db->query('SELECT bar FROM foo');
-//var_dump($result->fetchArray());
 
 
 if (isset($_POST['name']))
@@ -75,8 +70,8 @@ if(isset($_POST['register'])){
 	  	if ($passone !== $passtwo)
 			getBackToPage("passnotmatch");
 		$query = "INSERT INTO users 
-	  		(id,    email,   name,   password,  todayTime,   todayDate,   lastTimeTime) VALUES 
-	  		('$id','$email','$name','$passone','$todayTime','$todayDate','$todayTime')";
+	  		(id,    email,   name,   password,  todayTime,   todayDate,   lastTimeTime, home) VALUES 
+	  		('$id','$email','$name','$passone','$todayTime','$todayDate','$todayTime', '')";
 	  	$db->exec($query);
 		$row['count'] = 1;
 		
@@ -96,6 +91,8 @@ if(isset($_POST['login'])){
 				//echo "start session";
 				session_start();
 				$_SESSION['name'] = $rowPass['name'];
+				$_SESSION['id'] = $rowPass['id'];
+				$_SESSION['email'] = $rowPass['email'];
 				getBackToPageOK("login");
 			}else
 				getBackToPage("passnotright");
@@ -111,7 +108,40 @@ if(isset($_POST['login'])){
 
 
 if(isset($_POST['connect'])){
+	$id = $_GET['id'];
+	$name = $_GET['name'];
+	$getEmail = $_GET['email'];
+
+	$connectId = rand(111111111,9999999999);
+	$connectId = $connectId.md5($todayDate);
+	$result = $db->query("SELECT COUNT(connectionNo) as count FROM connection WHERE connectionNo = '$connectId'");
+	$row = $result->fetchArray();
 	
+	while($row['count'] == 0){
+		$query = "INSERT INTO connection 
+	  		(email,    connectionNo,   dateCreated) VALUES 
+	  		('$email','$connectId','$todayDate')";
+	  	$db->exec($query);
+		$query = "INSERT INTO connection 
+	  		(email,    connectionNo,   dateCreated) VALUES 
+	  		('$getEmail','$connectId','$todayDate')";
+	  	$db->exec($query);
+		$row['count'] = 1;
+		
+		// Send email
+		$to = $email;
+	   	$subject = $name." has invited you to GoingHo.me";
+	  	$message = $name." has invited you to GoingHo.me.\n\nClick the link below to join\n\nhttp://localhost:8888/settingoff/settingoff/index.php?request=".$connectId;
+	    $header = "From:GoingHo.me\r\n";
+  	    $retval = mail($to,$subject,$message,$header);
+  	    $connectId = "";
+	    if( $retval == true )  {
+			getBackToPageOK("emailok");
+	   	} else {
+			getBackToPage("emailbad");
+	   	}
+		
+	}
 }else
 	$_POST['connect'] = "";
 

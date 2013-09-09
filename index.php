@@ -2,6 +2,8 @@
 
 	session_start();
 	include "functions.php";
+	if(isset($_SESSION['email']))
+		$email = $_SESSION['email'];
 	
 class MyDB extends SQLite3
 {
@@ -71,7 +73,10 @@ if ( isset($_GET['error']) ) {
 			break;
 		case "nomatchingid":				
 			$errorMessage = "This link .";
-			break;			
+			break;	
+		case "emailbad":				
+			$errorMessage = "Oops, something went wrong there.";
+			break;						
 
 	}
 	
@@ -85,11 +90,18 @@ if ( isset($_GET['msg']) ) {
 		case "thanks":				
 			$goodMessage = "Thank you for registering. Please log in to add some settings.";
 			break;
+		case "emailok":				
+			$goodMessage = "We have emailed your connection. We will email you when your contact has accepted.";
+			break;			
 	}
 	
 	echo "<div class='good-msg paddingTen'><p>$goodMessage <span id='hide' class='pointer' alt='hide' title='hide'>[X]</span></p></div>";	
 }				
 
+
+if(isset($_GET['request'])){
+		echo "<div class='good-msg paddingTen'><p>You have a request. Log in or register to join and share a connection <span id='hide' class='pointer' alt='hide' title='hide'>[X]</span></p></div>";	
+}
 ?>
 <h1>Setting off?</h1>
 <h2>Need to let a loved one know what time you've set of to meet them? You can now, with this handy app.</h2>
@@ -108,7 +120,7 @@ if(isset($_GET['id'])){
 		<h3>Hello, $logInName</h3>
 		<nav class='nav'>
 			<a href='#' alt='make home'>Add home</a>
-			<a href='#' id='connect' alt='Connect'>Connect</a>
+			<button id='connect' alt='Connect'>Connect</button>
 			<a href='#' alt='delete'>Delete</a>
 			<a href='logout.php' alt='logout'>Logout</a>
 		</nav>
@@ -126,8 +138,8 @@ if(isset($_GET['id'])){
 		}	
 	}else{
 		loginOrRegister();
-	}	
-	
+	} 
+
 }else{                             
 
 	if(isset($_SESSION['name'])){
@@ -136,12 +148,13 @@ if(isset($_GET['id'])){
 		<h3>Hello, $logInName</h3>
 		<nav class='nav'>
 			<a href='#' alt='make home'>Add home</a>
-			<a href='#' id='connect' alt='Connect'>Connect</a>
+			<button id='connect' alt='Connect'>Connect</button>
 			<a href='#' alt='delete'>Delete</a>
 			<a href='logout.php' alt='logout'>Logout</a>
 		</nav>";
-		
-		makeConnect();
+		$id = $_SESSION['id'];
+		//$result = $db->query("SELECT id FROM users WHERE name = '$logInName'");
+		makeConnect($id,$logInName,$email);
 		
 	}else{
 		loginOrRegister();
@@ -190,7 +203,8 @@ $db->exec('
  	password CHAR(32),
  	todayTime TEXT NOT NULL,
  	todayDate TEXT NOT NULL,
- 	lastTimeTime TEXT NOT NULL
+ 	lastTimeTime TEXT NOT NULL,
+ 	home TEXT NOT NULL
  	)');
 $query = 'SELECT * FROM users'; 	
 //$result = $db->query($query);
@@ -210,6 +224,23 @@ else
 }
 
 
+$query = 'SELECT * FROM connection'; 	
+//$result = $db->query($query);
+
+if($result = $db->query($query))
+{
+  while($row = $result->fetchArray())
+  {
+    print("Email: {$row['email']} <br />" .
+          "Name: {$row['connectionNo']} <br />"
+          );
+  }
+}
+else
+{
+  die($error);
+}
+
 ?>
 <script>
 
@@ -228,8 +259,11 @@ $(document).ready(function(){
 	});
 	// show id=connect 
 	$("#connect").click(function(){
-		$(".connect-form").show();
-		
+		$(".connect-form").show();		
+	});
+	// hide parent of anything with id=hide 
+	$("#connecthide").click(function(){
+		$(this).parent().slideUp('fast');
 	});
 
 });
