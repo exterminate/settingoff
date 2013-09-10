@@ -30,7 +30,7 @@ $db->exec('
  	
 $db->exec('
 	CREATE TABLE if not exists connection (
-	email PRIMARY KEY NOT NULL,
+	email KEY NOT NULL,
  	connectionNo TEXT NOT NULL,
  	dateCreated TEXT NOT NULL
  	)');

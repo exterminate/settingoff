@@ -120,6 +120,7 @@ if(isset($_GET['id'])){
 		<h3>Hello, $logInName</h3>
 		<nav class='nav'>
 			<a href='#' alt='make home'>Add home</a>
+			<a href='index.php' alt='refresh'>Refresh</a>
 			<button id='connect' alt='Connect'>Connect</button>
 			<a href='#' alt='delete'>Delete</a>
 			<a href='logout.php' alt='logout'>Logout</a>
@@ -127,14 +128,29 @@ if(isset($_GET['id'])){
 		";
 		
 		// look for pre-existing links
-		$result = $db->query("SELECT COUNT(email) as count FROM users WHERE id = '$id'");
+		$result = $db->query("SELECT COUNT(email) as count FROM connection WHERE connectionNo = '$id'");
 		
 		while ($row = $result->fetchArray()) {
 			if ($row['count'] == 0){
-				echo "<p>You have not set up any connections yet</p>";
+				echo "<p>This is an invalid connection.</p>";
 			}else{
 				// show connection
-			}
+				
+				$connectionResult = $db->query("SELECT * FROM connection WHERE connectionNo = '$id'");
+				while($rowCon = $connectionResult->fetchArray()){
+					$otherUserEmail = $rowCon['email'];
+					if($rowCon['email'] == $email)
+						continue;
+					
+					$connectionName = $db->query("SELECT * FROM users WHERE email = '$otherUserEmail'");
+					while($rowConName = $connectionName->fetchArray()){
+						echo "<p>".$rowConName['name']."</p>";
+					}
+					
+					//echo $rowCon['email']."<br>";
+					
+				}
+			} echo "<p><a href='index.php'>Show all connections</a></p>";
 		}	
 	}else{
 		loginOrRegister();
@@ -148,30 +164,50 @@ if(isset($_GET['id'])){
 		<h3>Hello, $logInName</h3>
 		<nav class='nav'>
 			<a href='#' alt='make home'>Add home</a>
+			<a href='index.php' alt='refresh'>Refresh</a>
 			<button id='connect' alt='Connect'>Connect</button>
 			<a href='#' alt='delete'>Delete</a>
 			<a href='logout.php' alt='logout'>Logout</a>
 		</nav>";
 		$id = $_SESSION['id'];
-		//$result = $db->query("SELECT id FROM users WHERE name = '$logInName'");
 		makeConnect($id,$logInName,$email);
+
+		// display existing connections
+		$result = $db->query("SELECT * FROM connection WHERE email = '$email'");
+		
+		while($row = $result->fetchArray()) {
+			
+			
+			$connectionNumber = $row['connectionNo'];
+			$getOtherUser = $db->query("SELECT * FROM connection WHERE connectionNo = '$connectionNumber'");
+			while($rowConnection = $getOtherUser->fetchArray()) {
+				$otherUserEmail = $rowConnection['email'];
+				
+				// remove self
+				if($rowConnection['email'] == $email)
+					continue;
+				
+				// has user other user registered yet?
+				$userRegistered = $db->query("SELECT COUNT(email) as count FROM users WHERE email = '$otherUserEmail'");
+				while ($rowCount = $userRegistered->fetchArray()) {
+					if ($rowCount['count'] > 0){
+				
+						// yes, let's show them
+						$UsersName = $db->query("SELECT * FROM users WHERE email = '$otherUserEmail'");
+						while($rowOtherUser = $UsersName->fetchArray()) {
+							echo "<p><a href='index.php?id=".$connectionNumber."'>Connection with: " .$rowOtherUser['name']."</a></p>";
+						}
+					}else
+						echo "<p>Your connection has not been confirmed yet.</p>";		
+				}
+			}
+			echo "<p>Connection created: ".$row['dateCreated']."</p>";
+		}
 		
 	}else{
 		loginOrRegister();
 	}	
-/*                
-        }else{
-                $id = $_GET['id'];
-                //find saved information that from database that matches id.
-                $sql = "SELECT * FROM data WHERE id = '$id'";
-                
-                // to create a new "set off" or edit an old one, log in
-                
-                echo "<h3>Log in to modify your settings.</h3>";
-                // form
-      
-                
-*/        
+       
 }
 
 ?>
@@ -180,20 +216,7 @@ if(isset($_GET['id'])){
 <button id="set-off">Set off</button>
 <hr>
 <?php
-//		}
 
-// display partners details here
-
-/*
-class MyDB extends SQLite3
-{
-    function __construct()
-    {
-        $this->open('myDatabase.db');
-    }
-}
-
-*/
 
 $db->exec('
 	CREATE TABLE if not exists users (
@@ -206,6 +229,16 @@ $db->exec('
  	lastTimeTime TEXT NOT NULL,
  	home TEXT NOT NULL
  	)');
+ 	
+$db->exec('
+	CREATE TABLE if not exists connection (
+	email KEY NOT NULL,
+ 	connectionNo TEXT NOT NULL,
+ 	dateCreated TEXT NOT NULL
+ 	)');
+
+// DELETE LATER
+
 $query = 'SELECT * FROM users'; 	
 //$result = $db->query($query);
 
