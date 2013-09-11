@@ -28,7 +28,8 @@ function loginOrRegister(){
 function getBackToPage($errormsg) {
 	header("Location: index.php?error=$errormsg"); /* Redirect browser */
 	exit;
-}	
+}
+
 
 function getBackToPageOK($goodmsg) {
 	if($goodmsg != "login")
@@ -38,6 +39,14 @@ function getBackToPageOK($goodmsg) {
 	header("Location: index.php$msgValue"); /* Redirect browser */
 	exit;
 }	
+
+function getBackToPageID($goodmsg,$theID) {
+	
+	$msgValue = "?msg=".$goodmsg."&id=".$theID;
+
+	header("Location: index.php$msgValue"); /* Redirect browser */
+	exit;
+}
 
 function makeConnect($id,$logInName,$email){
 	echo '

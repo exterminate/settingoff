@@ -146,5 +146,20 @@ if(isset($_POST['connect'])){
 	$_POST['connect'] = "";
 
 
+if(isset($_GET['action'])){
+	if($_GET['action'] == "setoff"){
+		$setOffTime = $_GET['setOffTime'];
+		$setOffDate = $_GET['setOffDate'];
+		$myid = $_GET['id'];
+		$myconnection = $_GET['connection'];
+	
+		$result = $db->exec("UPDATE users SET todayDate='$setOffDate',todayTime='$setOffTime' WHERE id = '$myid'");
+		 getBackToPageID("setoff",$myconnection);
+	
+	}
+}else
+	$_GET['action'] = '';
+
+
 $db->close();
 ?>

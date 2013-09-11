@@ -4,6 +4,9 @@
 	include "functions.php";
 	if(isset($_SESSION['email']))
 		$email = $_SESSION['email'];
+		
+	$todayTime = date("H:i");
+	$todayDate = date("j F Y");	
 	
 class MyDB extends SQLite3
 {
@@ -92,7 +95,10 @@ if ( isset($_GET['msg']) ) {
 			break;
 		case "emailok":				
 			$goodMessage = "We have emailed your connection. We will email you when your contact has accepted.";
-			break;			
+			break;
+		case "setoff":				
+			$goodMessage = "You have set off!";
+			break;					
 	}
 	
 	echo "<div class='good-msg paddingTen'><p>$goodMessage <span id='hide' class='pointer' alt='hide' title='hide'>[X]</span></p></div>";	
@@ -126,6 +132,7 @@ if(isset($_GET['id'])){
 			<a href='logout.php' alt='logout'>Logout</a>
 		</nav>
 		";
+		makeConnect($id,$logInName,$email);
 		
 		// look for pre-existing links
 		$result = $db->query("SELECT COUNT(email) as count FROM connection WHERE connectionNo = '$id'");
@@ -139,18 +146,50 @@ if(isset($_GET['id'])){
 				$connectionResult = $db->query("SELECT * FROM connection WHERE connectionNo = '$id'");
 				while($rowCon = $connectionResult->fetchArray()){
 					$otherUserEmail = $rowCon['email'];
-					if($rowCon['email'] == $email)
+					
+					if($rowCon['email'] == $email) 
 						continue;
 					
+					
 					$connectionName = $db->query("SELECT * FROM users WHERE email = '$otherUserEmail'");
-					while($rowConName = $connectionName->fetchArray()){
-						echo "<p>".$rowConName['name']."</p>";
+					while($rowConName = $connectionName->fetchArray()) {
+						echo "<p class='name'>".$rowConName['name']."</p>";
+						$conName = $rowConName['name'];
+						$conTime = $rowConName['todayTime'];
+						$conDate = $rowConName['todayDate'];
 					}
 					
-					//echo $rowCon['email']."<br>";
+					$rowConDate = $rowCon['dateCreated'];
+					echo "<p>Connection created: ".$rowConDate."</p>";
 					
 				}
-			} echo "<p><a href='index.php'>Show all connections</a></p>";
+				
+			// has your connected friend set off?
+			if($conDate == $todayDate) { 	//yes
+				echo "<p>". $conName." set off today at ".$conTime."</p>";
+			}else{ 							//no
+				echo "<p>". $conName." has not set off today</p>";
+			}
+			
+			
+			$myDetails = $db->query("SELECT * FROM users WHERE email = '$email'");
+			while($rowConMe = $myDetails->fetchArray()) {
+				
+				$myDate = $rowConMe['todayDate'];
+				$myTime = $rowConMe['todayTime'];	
+	
+				// have you set off?
+				if($myDate == $todayDate) { // yes
+					echo "<p>You set of at ".$myTime."</p>";
+				}else{                      // no
+					echo '<a href="postlandr.php?action=setoff&setOffTime='.$todayTime.'&setOffDate='.$todayDate.'&id='.$rowConMe['id'].'&connection='.$id.'" id="set-off">Set off</a>';
+				}
+			
+			}
+				
+			} 
+			
+			echo "<p><a href='index.php'>Show all connections</a></p>";
 		}	
 	}else{
 		loginOrRegister();
@@ -195,13 +234,15 @@ if(isset($_GET['id'])){
 						// yes, let's show them
 						$UsersName = $db->query("SELECT * FROM users WHERE email = '$otherUserEmail'");
 						while($rowOtherUser = $UsersName->fetchArray()) {
-							echo "<p><a href='index.php?id=".$connectionNumber."'>Connection with: " .$rowOtherUser['name']."</a></p>";
+							echo "<p>Connection with: <a href='index.php?id=".$connectionNumber."'><span class='name'>" .$rowOtherUser['name']."</span></a></p>";
 						}
 					}else
 						echo "<p>Your connection has not been confirmed yet.</p>";		
 				}
 			}
 			echo "<p>Connection created: ".$row['dateCreated']."</p>";
+			
+
 		}
 		
 	}else{
@@ -248,6 +289,7 @@ if($result = $db->query($query))
   {
     print("Email: {$row['email']} <br />" .
           "Name: {$row['name']} <br />".
+          "Date: {$row['todayDate']} <br />".
           "Time: {$row['todayTime']} <br /><br />");
   }
 }
