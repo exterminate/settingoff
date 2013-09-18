@@ -27,3 +27,7 @@ body {
 .name {
 	font-weight: bold;
 }
+
+h1 {
+	font-family: 'Lilita One', serif;
+}

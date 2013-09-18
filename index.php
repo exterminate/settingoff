@@ -23,6 +23,7 @@ class MyDB extends SQLite3
 <html>
 <head>
 	<title>Setting off</title>
+	<link href="http://fonts.googleapis.com/css?family=Lilita+One" rel="stylesheet" type="text/css">
 	<link rel="stylesheet" href="style.css">
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js" type="text/javascript"></script>
 </head>
@@ -110,7 +111,7 @@ if(isset($_GET['request'])){
 }
 ?>
 <h1>Setting off?</h1>
-<h2>Need to let a loved one know what time you've set of to meet them? You can now, with this handy app.</h2>
+<h2>Need to let a loved one know what time you've set off to meet them? You can now, with this handy app.</h2>
 <p>Sign up, login, share the link and save the page to your smart phone's home screen.</p>
 
 <?php 
@@ -141,57 +142,18 @@ if(isset($_GET['id'])){
 			if ($row['count'] == 0){
 				echo "<p>This is an invalid connection.</p>";
 			}else{
-				// show connection
 				
-				$connectionResult = $db->query("SELECT * FROM connection WHERE connectionNo = '$id'");
-				while($rowCon = $connectionResult->fetchArray()){
-					$otherUserEmail = $rowCon['email'];
-					
-					if($rowCon['email'] == $email) 
-						continue;
-					
-					
-					$connectionName = $db->query("SELECT * FROM users WHERE email = '$otherUserEmail'");
-					while($rowConName = $connectionName->fetchArray()) {
-						echo "<p class='name'>".$rowConName['name']."</p>";
-						$conName = $rowConName['name'];
-						$conTime = $rowConName['todayTime'];
-						$conDate = $rowConName['todayDate'];
-					}
-					
-					$rowConDate = $rowCon['dateCreated'];
-					echo "<p>Connection created: ".$rowConDate."</p>";
-					
-				}
-				
-			// has your connected friend set off?
-			if($conDate == $todayDate) { 	//yes
-				echo "<p>". $conName." set off today at ".$conTime."</p>";
-			}else{ 							//no
-				echo "<p>". $conName." has not set off today</p>";
-			}
-			
-			
-			$myDetails = $db->query("SELECT * FROM users WHERE email = '$email'");
-			while($rowConMe = $myDetails->fetchArray()) {
-				
-				$myDate = $rowConMe['todayDate'];
-				$myTime = $rowConMe['todayTime'];	
-	
-				// have you set off?
-				if($myDate == $todayDate) { // yes
-					echo "<p>You set of at ".$myTime."</p>";
-				}else{                      // no
-					echo '<a href="postlandr.php?action=setoff&setOffTime='.$todayTime.'&setOffDate='.$todayDate.'&id='.$rowConMe['id'].'&connection='.$id.'" id="set-off">Set off</a>';
-				}
-			
-			}
+				// Show connection from ID
+				showConnection($id,$db,$todayDate,$todayTime);
 				
 			} 
 			
 			echo "<p><a href='index.php'>Show all connections</a></p>";
 		}	
 	}else{
+		
+		// Show connection from ID
+		showConnection($id,$db,$todayDate,$todayTime);
 		loginOrRegister();
 	} 
 
@@ -236,7 +198,7 @@ if(isset($_GET['id'])){
 						while($rowOtherUser = $UsersName->fetchArray()) {
 							echo "<p>Connection with: <a href='index.php?id=".$connectionNumber."'><span class='name'>" .$rowOtherUser['name']."</span></a></p>";
 						}
-					}else
+					}else // does this work?
 						echo "<p>Your connection has not been confirmed yet.</p>";		
 				}
 			}
@@ -254,7 +216,7 @@ if(isset($_GET['id'])){
 ?>
 
 
-<button id="set-off">Set off</button>
+<!--<button id="set-off">Set off</button>-->
 <hr>
 <?php
 
@@ -287,7 +249,8 @@ if($result = $db->query($query))
 {
   while($row = $result->fetchArray())
   {
-    print("Email: {$row['email']} <br />" .
+    print("ID: {$row['id']} <br />" .
+		  "Email: {$row['email']} <br />" .
           "Name: {$row['name']} <br />".
           "Date: {$row['todayDate']} <br />".
           "Time: {$row['todayTime']} <br /><br />");
@@ -317,6 +280,8 @@ else
 }
 
 ?>
+
+
 <script>
 
 $(document).ready(function(){
@@ -340,9 +305,40 @@ $(document).ready(function(){
 	$("#connecthide").click(function(){
 		$(this).parent().slideUp('fast');
 	});
+	
+	
+	// START -- calculate minutes since set off
+	var nowDate = $('#time-left').html(); 
+	
+	var startDate = new Date(nowDate);
+	setInterval(function(){getTime(startDate);}, 1000);
 
-});
+	$('#time-left').html(startDate); 
 
+  
+	function getTime(startDate){   
+		var date = new Date();
+	  	var seconds = (date - startDate)/1000;
+	  	$('#time-left').html(toHHMMSS(seconds));
+  
+	}
+
+	function toHHMMSS(sec) {
+		var sec_num = parseInt(sec, 10);
+		var hours   = Math.floor(sec_num / 3600);
+		var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+		var seconds = sec_num - (hours * 3600) - (minutes * 60);
+
+		if (hours   < 10) {hours   = "0"+hours;}
+		if (minutes < 10) {minutes = "0"+minutes;}
+		if (seconds < 10) {seconds = "0"+seconds;}
+	  	//  var time    = hours+':'+minutes+':'+seconds;
+  		if(hours > 0) { var time = hours * 60; }
+  		if(hours == 0) { var time = minutes; }
+	  	
+		return time;
+	}});
+	// END -- calculate minutes since set off
 </script>
 </body>
 </html>

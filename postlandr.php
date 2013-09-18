@@ -54,7 +54,7 @@ if (isset($_POST['email']))
 	$email = $_POST['email'];
 
 if(isset($_POST['register'])){
-	$id = rand(11111,99999);
+	$id = rand(1111111,9999999);
 	//$result = $db->exec("SELECT id FROM users WHERE id = '$id'");
 	$result = $db->query("SELECT COUNT(id) as count FROM users WHERE id = '$id'");
 	$row = $result->fetchArray();
@@ -71,7 +71,7 @@ if(isset($_POST['register'])){
 			getBackToPage("passnotmatch");
 		$query = "INSERT INTO users 
 	  		(id,    email,   name,   password,  todayTime,   todayDate,   lastTimeTime, home) VALUES 
-	  		('$id','$email','$name','$passone','$todayTime','$todayDate','$todayTime', '')";
+	  		('$id','$email','$name','$passone','','','', '')";
 	  	$db->exec($query);
 		$row['count'] = 1;
 		
@@ -111,20 +111,22 @@ if(isset($_POST['connect'])){
 	$id = $_GET['id'];
 	$name = $_GET['name'];
 	$getEmail = $_GET['email'];
-
+	
 	$connectId = rand(111111111,9999999999);
-	$connectId = $connectId.md5($todayDate);
+	$connectId = $connectId.md5($todayDate).$id;
 	$result = $db->query("SELECT COUNT(connectionNo) as count FROM connection WHERE connectionNo = '$connectId'");
 	$row = $result->fetchArray();
 	
 	while($row['count'] == 0){
+		$connectIdb = $connectId."b";
 		$query = "INSERT INTO connection 
 	  		(email,    connectionNo,   dateCreated) VALUES 
-	  		('$email','$connectId','$todayDate')";
+	  		('$email','$connectIdb','$todayDate')";
 	  	$db->exec($query);
+	  	$connectIda = $connectId."a";
 		$query = "INSERT INTO connection 
 	  		(email,    connectionNo,   dateCreated) VALUES 
-	  		('$getEmail','$connectId','$todayDate')";
+	  		('$getEmail','$connectIda','$todayDate')";
 	  	$db->exec($query);
 		$row['count'] = 1;
 		
