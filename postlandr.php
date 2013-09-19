@@ -93,6 +93,7 @@ if(isset($_POST['login'])){
 				$_SESSION['name'] = $rowPass['name'];
 				$_SESSION['id'] = $rowPass['id'];
 				$_SESSION['email'] = $rowPass['email'];
+				$_SESSION['home'] = $rowPass['home'];
 				getBackToPageOK("login");
 			}else
 				getBackToPage("passnotright");
@@ -158,6 +159,14 @@ if(isset($_GET['action'])){
 		$result = $db->exec("UPDATE users SET todayDate='$setOffDate',todayTime='$setOffTime' WHERE id = '$myid'");
 		 getBackToPageID("setoff",$myconnection);
 	
+	}elseif($_GET['action'] == "set-home"){
+		// set home location
+		//echo "done";
+		$lat = $_GET['lat'];
+		$lng = $_GET['lng'];
+		$coords = $lat.",".$lng;
+		$result = $db->exec("UPDATE users SET home='$coords' WHERE id = '$myid'");
+		getBackToPageOK("sethome");
 	}
 }else
 	$_GET['action'] = '';

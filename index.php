@@ -99,7 +99,10 @@ if ( isset($_GET['msg']) ) {
 			break;
 		case "setoff":				
 			$goodMessage = "You have set off!";
-			break;					
+			break;		
+		case "sethome":				
+			$goodMessage = "Your home location has been set";
+			break;							
 	}
 	
 	echo "<div class='good-msg paddingTen'><p>$goodMessage <span id='hide' class='pointer' alt='hide' title='hide'>[X]</span></p></div>";	
@@ -205,6 +208,13 @@ if(isset($_GET['id'])){
 			echo "<p>Connection created: ".$row['dateCreated']."</p>";
 			
 
+			// set home location
+			if(!isset($_SESSION['home'])){
+				echo "<p id='linkToSetHome'></p>";
+				echo "<p id='jqd'>:: </p>";
+			}else{
+				echo "<p>home set</p>";
+			}
 		}
 		
 	}else{
@@ -216,7 +226,6 @@ if(isset($_GET['id'])){
 ?>
 
 
-<!--<button id="set-off">Set off</button>-->
 <hr>
 <?php
 
@@ -253,6 +262,7 @@ if($result = $db->query($query))
 		  "Email: {$row['email']} <br />" .
           "Name: {$row['name']} <br />".
           "Date: {$row['todayDate']} <br />".
+          "Home: {$row['home']} <br />".
           "Time: {$row['todayTime']} <br /><br />");
   }
 }
@@ -279,6 +289,9 @@ else
   die($error);
 }
 
+
+$latHome = 52.23567979454229;
+$lngHome = 0.14059868454934;
 ?>
 
 
@@ -330,15 +343,71 @@ $(document).ready(function(){
 		var seconds = sec_num - (hours * 3600) - (minutes * 60);
 
 		if (hours   < 10) {hours   = "0"+hours;}
-		if (minutes < 10) {minutes = "0"+minutes;}
+		if (minutes < 10) {minutes = minutes;}
 		if (seconds < 10) {seconds = "0"+seconds;}
 	  	//  var time    = hours+':'+minutes+':'+seconds;
-  		if(hours > 0) { var time = hours * 60; }
+  		if(hours > 0) { var time = hours * 60 + minutes; }
   		if(hours == 0) { var time = minutes; }
 	  	
 		return time;
 	}});
 	// END -- calculate minutes since set off
+	
+	
+	// START -- calculate distance
+	
+	var y = document.getElementById("jqd");
+	function getLocation() {
+	  	if (navigator.geolocation) {
+			navigator.geolocation.watchPosition(showPosition);
+		}else{y.innerHTML="Geolocation is not supported by this browser.";}
+	}
+  
+	function distance(lat1, lng1, lat2, lng2) {
+		var miles = true;
+		var pi80 = Math.PI / 180;
+		var lat1 = lat1 * pi80;
+		var lng1 = lng1 * pi80;
+		var lat2 = lat2 * pi80;
+		var lng2 = lng2 * pi80;
+	
+ 
+		var r = 6372.797; // mean radius of Earth in km
+		console.log("r:"+r);
+		var dlat = lat2 - lat1;
+		var dlng = lng2 - lng1;
+		var a = Math.sin(dlat / 2) * Math.sin(dlat / 2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dlng / 2) * Math.sin(dlng / 2);
+		var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+		var km = r * c;
+ 
+		var dist = (miles ? (km * 0.621371192) : km);
+		return dist.toFixed(1);
+	}
+  
+  
+	function showPosition(position) {
+	  	y.innerHTML="Latitude: " + position.coords.latitude + 
+	  	"<br>Longitude: " + position.coords.longitude;	
+  
+	  	var lati = position.coords.latitude;
+	  	var lng = position.coords.longitude;
+	  	
+	  	var setHome = "<a href='postlandr.php?action=set-home&lat=" + lati + "&lng=" + lng+ "'>Set home</a>";
+  		$("#linkToSetHome").html(setHome);
+  		
+	  	var stuff = distance("<?php echo $latHome; ?>","<?php echo $lngHome; ?>",lati,lng);
+	  	$("#jqd").text(stuff);
+	}
+	
+    $("#locationNow").click(function(){
+        $("#demo").addClass("blue");
+        getLocation();
+    });	
+    
+    $('#jqd').append(getLocation());
+	
+	// END -- calculate distance
+  	
 </script>
 </body>
 </html>
