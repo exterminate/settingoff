@@ -109,42 +109,89 @@ if(isset($_POST['login'])){
 
 
 if(isset($_POST['connect'])){
+	session_start();
+	$myEmail = $_SESSION['email'];
 	$id = $_GET['id'];
 	$name = $_GET['name'];
-	$getEmail = $_GET['email'];
+	$getEmail = $_POST['email'];
+	if(!isset($getEmail))
+		getBackToPage("emailbad");
 	
-	$connectId = rand(111111111,9999999999);
-	$connectId = $connectId.md5($todayDate).$id;
-	$result = $db->query("SELECT COUNT(connectionNo) as count FROM connection WHERE connectionNo = '$connectId'");
-	$row = $result->fetchArray();
+	if($getEmail == $myEmail)
+		getBackToPage("cantconnectwithself");	
 	
-	while($row['count'] == 0){
-		$connectIdb = $connectId."b";
-		$query = "INSERT INTO connection 
-	  		(email,    connectionNo,   dateCreated) VALUES 
-	  		('$email','$connectIdb','$todayDate')";
-	  	$db->exec($query);
-	  	$connectIda = $connectId."a";
-		$query = "INSERT INTO connection 
-	  		(email,    connectionNo,   dateCreated) VALUES 
-	  		('$getEmail','$connectIda','$todayDate')";
-	  	$db->exec($query);
-		$row['count'] = 1;
+	
+	// check whether these two people have a connection already and stop if they do
+	
+	//are there any connections at all?
+	$checkAnyConnections = $db->query("SELECT COUNT(connectionNo) as count FROM connection WHERE  email = '$myEmail'");	
+	$rowcheckAnyConnections = $checkAnyConnections->fetchArray();
+	if($rowcheckAnyConnections['count'] != 0){	
 		
-		// Send email
-		$to = $email;
-	   	$subject = $name." has invited you to GoingHo.me";
-	  	$message = $name." has invited you to GoingHo.me.\n\nClick the link below to join\n\nhttp://localhost:8888/settingoff/settingoff/index.php?request=".$connectId;
-	    $header = "From:GoingHo.me\r\n";
-  	    $retval = mail($to,$subject,$message,$header);
-  	    $connectId = "";
-	    if( $retval == true )  {
-			getBackToPageOK("emailok");
-	   	} else {
-			getBackToPage("emailbad");
-	   	}
+		$check = $db->query("SELECT connectionNo FROM connection WHERE email = '$myEmail'");
+		while($rowCheck = $check->fetchArray()) {
+			$valueToCheck = substr($rowCheck['connectionNo'],0,-1);
 		
+			$valueToChecka = $valueToCheck."a";
+			$valueToCheckb = $valueToCheck."b";
+			
+			if($rowCheck['connectionNo'] == $valueToChecka){
+				$tempValToCheck = $valueToCheckb;
+				
+			}else
+				$tempValToCheck = $valueToChecka;
+				
+			$checkSecond = $db->query("SELECT email FROM connection WHERE connectionNo = '$tempValToCheck'");
+			while($rowCount = $checkSecond->fetchArray()){
+				if ($rowCount['email'] == $getEmail){
+					$saveConnection = "no";
+					getBackToPage("alreadyshared");
+				}else
+					$saveConnection = "yes";
+			}
+			
+		}
+
+	}else 
+		$saveConnection = "yes";
+	
+	// create connection
+	if($saveConnection == "yes"){
+		$connectId = rand(111111111,9999999999);
+		$connectId = $connectId.md5($todayDate).$id;
+		$result = $db->query("SELECT COUNT(connectionNo) as count FROM connection WHERE connectionNo = '$connectId'");
+		$row = $result->fetchArray();
+
+		while($row['count'] == 0){
+			$connectIdb = $connectId."b";
+			$query = "INSERT INTO connection 
+				(email,    connectionNo,   dateCreated) VALUES 
+				('$email','$connectIdb','$todayDate')";
+			$db->exec($query);
+			$connectIda = $connectId."a";
+			$query = "INSERT INTO connection 
+				(email,    connectionNo,   dateCreated) VALUES 
+				('$myEmail','$connectIda','$todayDate')";
+			$db->exec($query);
+			$row['count'] = 1;
+	
+			// Send email
+			$to = $email;
+			$subject = $name." has invited you to GoingHo.me";
+			$message = $name." has invited you to GoingHo.me.\n\nClick the link below to join\n\nhttp://localhost:8888/settingoff/settingoff/index.php?request=".$connectId;
+			$header = "From:GoingHo.me\r\n";
+			$retval = mail($to,$subject,$message,$header);
+			$connectId = "";
+			if( $retval == true )  
+				getBackToPageOK("emailok");
+			else 
+				getBackToPage("emailbad");
+			
+	
+		}
+	
 	}
+	
 }else
 	$_POST['connect'] = "";
 
@@ -160,12 +207,13 @@ if(isset($_GET['action'])){
 		 getBackToPageID("setoff",$myconnection);
 	
 	}elseif($_GET['action'] == "set-home"){
+		session_start();
 		// set home location
-		//echo "done";
+		$myemail = $_SESSION['email'];
 		$lat = $_GET['lat'];
 		$lng = $_GET['lng'];
 		$coords = $lat.",".$lng;
-		$result = $db->exec("UPDATE users SET home='$coords' WHERE id = '$myid'");
+		$result = $db->exec("UPDATE users SET home='$coords' WHERE email = '$myemail'");
 		getBackToPageOK("sethome");
 	}
 }else

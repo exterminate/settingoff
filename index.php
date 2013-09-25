@@ -81,7 +81,12 @@ if ( isset($_GET['error']) ) {
 		case "emailbad":				
 			$errorMessage = "Oops, something went wrong there.";
 			break;						
-
+		case "alreadyshared":				
+			$errorMessage = "You are already sharing with this person.";
+			break;	
+		case "cantconnectwithself":				
+			$errorMessage = "You can't connect with yourself, silly.";
+			break;			
 	}
 	
 	echo "<div class='error-warning paddingTen'><p>$errorMessage <span id='hide' class='pointer' alt='hide' title='hide'>[X]</span></p></div>";	
@@ -129,8 +134,8 @@ if(isset($_GET['id'])){
 		echo "
 		<h3>Hello, $logInName</h3>
 		<nav class='nav'>
-			<a href='#' alt='make home'>Add home</a>
-			<a href='index.php' alt='refresh'>Refresh</a>
+			<a href='#' alt='make home'>Set home</a>
+			<a href='index.php?id=".$id."' alt='refresh'>Refresh</a>
 			<button id='connect' alt='Connect'>Connect</button>
 			<a href='#' alt='delete'>Delete</a>
 			<a href='logout.php' alt='logout'>Logout</a>
@@ -167,7 +172,7 @@ if(isset($_GET['id'])){
 		echo "
 		<h3>Hello, $logInName</h3>
 		<nav class='nav'>
-			<a href='#' alt='make home'>Add home</a>
+			<a alt='make home'>Set home</a>
 			<a href='index.php' alt='refresh'>Refresh</a>
 			<button id='connect' alt='Connect'>Connect</button>
 			<a href='#' alt='delete'>Delete</a>
@@ -180,10 +185,16 @@ if(isset($_GET['id'])){
 		$result = $db->query("SELECT * FROM connection WHERE email = '$email'");
 		
 		while($row = $result->fetchArray()) {
-			
+			echo "<hr>";
 			
 			$connectionNumber = $row['connectionNo'];
-			$getOtherUser = $db->query("SELECT * FROM connection WHERE connectionNo = '$connectionNumber'");
+			// get complementary connectionNO
+			if(substr($connectionNumber,-1) == "a")
+				$tempNo = substr($connectionNumber,0,-1)."b";
+			else	
+				$tempNo = substr($connectionNumber,0,-1)."a";
+								
+			$getOtherUser = $db->query("SELECT * FROM connection WHERE connectionNo = '$tempNo'");
 			while($rowConnection = $getOtherUser->fetchArray()) {
 				$otherUserEmail = $rowConnection['email'];
 				
@@ -209,12 +220,21 @@ if(isset($_GET['id'])){
 			
 
 			// set home location
-			if(!isset($_SESSION['home'])){
+			$varHome = returnCoords($db,$email);
+			
+			echo "<p id='jqd'> </p>";// NOT FINISHED WITH THIS
+			if(!empty($varHome)){
+				$coordArray = explode(",",$varHome);
+				$latHome = $coordArray[0];
+				$lngHome = $coordArray[1];				
+			// FINISH THIS
 				echo "<p id='linkToSetHome'></p>";
-				echo "<p id='jqd'>:: </p>";
+				
 			}else{
-				echo "<p>home set</p>";
+				echo "<p id='linkToSetHome'></p>";
 			}
+			
+			echo "<hr>";
 		}
 		
 	}else{
@@ -289,9 +309,10 @@ else
   die($error);
 }
 
-
+if(!isset($latHome)){
 $latHome = 52.23567979454229;
 $lngHome = 0.14059868454934;
+}
 ?>
 
 
@@ -362,6 +383,14 @@ $(document).ready(function(){
 			navigator.geolocation.watchPosition(showPosition);
 		}else{y.innerHTML="Geolocation is not supported by this browser.";}
 	}
+	
+	//duplicate for first time position
+	var z = document.getElementById("FTP");
+	function getLocation() {
+	  	if (navigator.geolocation) {
+			navigator.geolocation.watchPosition(showPosition);
+		}else{z.innerHTML="Geolocation is not supported by this browser.";}
+	}
   
 	function distance(lat1, lng1, lat2, lng2) {
 		var miles = true;
@@ -392,7 +421,7 @@ $(document).ready(function(){
 	  	var lati = position.coords.latitude;
 	  	var lng = position.coords.longitude;
 	  	
-	  	var setHome = "<a href='postlandr.php?action=set-home&lat=" + lati + "&lng=" + lng+ "'>Set home</a>";
+	  	var setHome = "<a id='setHomeLink' href='postlandr.php?action=set-home&lat=" + lati + "&lng=" + lng + "'>Set home</a>";
   		$("#linkToSetHome").html(setHome);
   		
 	  	var stuff = distance("<?php echo $latHome; ?>","<?php echo $lngHome; ?>",lati,lng);
@@ -405,6 +434,18 @@ $(document).ready(function(){
     });	
     
     $('#jqd').append(getLocation());
+	
+	$(document).on("click","#setHomeLink",function(){
+		var r = confirm("Reset home?");
+		if (r==true) {
+			x="You pressed OK!";
+		} else {
+			x="You pressed Cancel!";
+			return false;
+		}
+		alert(x);
+		
+	});
 	
 	// END -- calculate distance
   	
