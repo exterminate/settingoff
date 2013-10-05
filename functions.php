@@ -64,7 +64,7 @@ function makeConnect($id,$logInName,$email){
 
 
 function showConnection($id,$db,$todayDate,$todayTime){
-	
+
 	$nowTime = date("F d, Y ");
 	
 	echo "<hr>";	echo "<hr>";	
@@ -85,8 +85,22 @@ function showConnection($id,$db,$todayDate,$todayTime){
 			if($myDate == $todayDate) { // yes
 				
 				echo "<p>You set off at ".$myTime."</p><p><span id='time-left'>".$nowTime.$myTime.":00</span> minutes ago.</p>";
+				
+				$findDistance = $db->query("SELECT * FROM users WHERE ID = '$personID'");
+				if(isset($rowDistance['home']))
+				while($rowDistance = $findDistance->fetchArray()){
+					if(isset($rowDistance['home'])) {
+						$coords = explode(",",$rowDistance['home']);
+						$latHome = $coords[0];
+						$lngHome = $coords[1];
+						echo "<p id='jqd'>".$rowDistance['home']."</p>";
+						echo "<p id='linkToSetHome'>*</p>";
+						continue;
+					}
+				}
+				
 			}else{                      // no
-				echo '<a href="postlandr.php?action=setoff&setOffTime='.$todayTime.'&setOffDate='.$todayDate.'&id='.$personID.'&connection='.$id.'" id="set-off">Set off</a>';
+					echo '<a href="postlandr.php?action=setoff&setOffTime='.$todayTime.'&setOffDate='.$todayDate.'&id='.$personID.'&connection='.$id.'" id="set-off">Set off</a>';
 			}
 
 		}
@@ -120,7 +134,7 @@ function showConnection($id,$db,$todayDate,$todayTime){
 			
 			// have you set off?
 			if($myDate == $todayDate) { // yes
-				echo "<p>".$myName." set off at ".$myTime.".</p><p><span id='time-left'>".$nowTime.$myTime.":00</span> minutes ago.</p>";
+				echo "<p>".$myName." set off at ".$myTime.".</p><p><span id='time-left-2'>".$nowTime.$myTime.":00</span> minutes ago.</p>";
 			}else{                      // no
 				echo "<p>".$myName." has not set off yet.</p>";
 			}
@@ -143,4 +157,10 @@ function returnCoords($db,$email){
 	}
 	return $rowHome;
 }
+
+function setHome($myemail,$coords) {
+	$result = $db->exec("UPDATE users SET home='$coords' WHERE email = '$myemail'");
+}
+
+
 ?>

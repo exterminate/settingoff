@@ -23,10 +23,14 @@ class MyDB extends SQLite3
 <html>
 <head>
 	<title>Setting off</title>
-	<link href="http://fonts.googleapis.com/css?family=Lilita+One" rel="stylesheet" type="text/css">
 	<link rel="stylesheet" href="style.css">
+
+	<link href="http://fonts.googleapis.com/css?family=Lilita+One" rel="stylesheet" type="text/css">
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js" type="text/javascript"></script>
-</head>
+	<script src="script.js" type="text/javascript"></script>
+
+	
+	</head>
 <body>
 <?php
 
@@ -152,15 +156,34 @@ if(isset($_GET['id'])){
 			}else{
 				
 				// Show connection from ID
+				//$varHome = returnCoords($db,$email);
 				showConnection($id,$db,$todayDate,$todayTime);
 				
+				
 			} 
+			/*
+			// set and display home location
+			$varHome = returnCoords($db,$email);
+			echo "<p id='jqd'> </p>";// NOT FINISHED WITH THIS - will test first
+			if(!empty($varHome)){
+				$coordArray = explode(",",$varHome);
+				$latHome = $coordArray[0];
+				$lngHome = $coordArray[1];				
+			// FINISH THIS
+				echo "<p id='linkToSetHome'></p>";
+				
+			}else{
+				echo "<p id='linkToSetHome'></p>";
+			}
+			*/
+			echo "<hr>";
 			
 			echo "<p><a href='index.php'>Show all connections</a></p>";
 		}	
 	}else{
 		
 		// Show connection from ID
+		//$varHome = returnCoords($db,$email);
 		showConnection($id,$db,$todayDate,$todayTime);
 		loginOrRegister();
 	} 
@@ -172,7 +195,7 @@ if(isset($_GET['id'])){
 		echo "
 		<h3>Hello, $logInName</h3>
 		<nav class='nav'>
-			<a alt='make home'>Set home</a>
+			<a href='#' onclick='getLocation();' id='sethome' alt='make home'>Set home</a>
 			<a href='index.php' alt='refresh'>Refresh</a>
 			<button id='connect' alt='Connect'>Connect</button>
 			<a href='#' alt='delete'>Delete</a>
@@ -216,13 +239,13 @@ if(isset($_GET['id'])){
 						echo "<p>Your connection has not been confirmed yet.</p>";		
 				}
 			}
-			echo "<p>Connection created: ".$row['dateCreated']."</p>";
+			echo "<p class='connection-created'>Connection created: ".$row['dateCreated']."</p>";
 			
-
+			/*
 			// set home location
 			$varHome = returnCoords($db,$email);
 			
-			echo "<p id='jqd'> </p>";// NOT FINISHED WITH THIS
+			echo "<p id='jqd'> </p>";// NOT FINISHED WITH THIS - will test first
 			if(!empty($varHome)){
 				$coordArray = explode(",",$varHome);
 				$latHome = $coordArray[0];
@@ -233,7 +256,7 @@ if(isset($_GET['id'])){
 			}else{
 				echo "<p id='linkToSetHome'></p>";
 			}
-			
+			*/
 			echo "<hr>";
 		}
 		
@@ -310,111 +333,63 @@ else
 }
 
 if(!isset($latHome)){
-$latHome = 52.23567979454229;
-$lngHome = 0.14059868454934;
+echo "not set<br>";
+//$latHome = 52.23567979454229;
+//lngHome = 0.14059868454934;
 }
 ?>
 
-
 <script>
 
-$(document).ready(function(){
-	$("#toggle-login").click(function(){
-		$(this).parent().hide();
-		$(".register-form").show();	
-	});
-	$("#toggle-register").click(function(){
-		$(this).parent().hide();	
-		$(".login-form").show();
-	});
-	// hide parent of anything with id=hide 
-	$("#hide").click(function(){
-		$(this).parent().parent().slideUp('fast');
-	});
-	// show id=connect 
-	$("#connect").click(function(){
-		$(".connect-form").show();		
-	});
-	// hide parent of anything with id=hide 
-	$("#connecthide").click(function(){
-		$(this).parent().slideUp('fast');
-	});
-	
-	
-	// START -- calculate minutes since set off
-	var nowDate = $('#time-left').html(); 
-	
-	var startDate = new Date(nowDate);
-	setInterval(function(){getTime(startDate);}, 1000);
+/*
+$(document).ready(function () {
+	var y = $("#jqd").text();
+	var myCoords = y.split(",");
+	alert(myCoords[0] + "\n" + myCoords[1]);
+	/*
 
-	$('#time-left').html(startDate); 
+	
 
-  
-	function getTime(startDate){   
-		var date = new Date();
-	  	var seconds = (date - startDate)/1000;
-	  	$('#time-left').html(toHHMMSS(seconds));
-  
-	}
+	
+	
+	    $("#locationNow").click(function(){
+	        $("#demo").addClass("blue");
+	        getLocation();
+	    });	
+	    
+	    $('#jqd').append(getLocation());
 
-	function toHHMMSS(sec) {
-		var sec_num = parseInt(sec, 10);
-		var hours   = Math.floor(sec_num / 3600);
-		var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
-		var seconds = sec_num - (hours * 3600) - (minutes * 60);
+*//*
+});
 
-		if (hours   < 10) {hours   = "0"+hours;}
-		if (minutes < 10) {minutes = minutes;}
-		if (seconds < 10) {seconds = "0"+seconds;}
-	  	//  var time    = hours+':'+minutes+':'+seconds;
-  		if(hours > 0) { var time = hours * 60 + minutes; }
-  		if(hours == 0) { var time = minutes; }
-	  	
-		return time;
-	}});
-	// END -- calculate minutes since set off
-	
-	
-	// START -- calculate distance
-	
-	var y = document.getElementById("jqd");
-	function getLocation() {
-	  	if (navigator.geolocation) {
-			navigator.geolocation.watchPosition(showPosition);
-		}else{y.innerHTML="Geolocation is not supported by this browser.";}
-	}
-	
-	//duplicate for first time position
-	var z = document.getElementById("FTP");
-	function getLocation() {
-	  	if (navigator.geolocation) {
-			navigator.geolocation.watchPosition(showPosition);
-		}else{z.innerHTML="Geolocation is not supported by this browser.";}
-	}
-  
-	function distance(lat1, lng1, lat2, lng2) {
-		var miles = true;
-		var pi80 = Math.PI / 180;
-		var lat1 = lat1 * pi80;
-		var lng1 = lng1 * pi80;
-		var lat2 = lat2 * pi80;
-		var lng2 = lng2 * pi80;
-	
- 
-		var r = 6372.797; // mean radius of Earth in km
-		console.log("r:"+r);
-		var dlat = lat2 - lat1;
-		var dlng = lng2 - lng1;
-		var a = Math.sin(dlat / 2) * Math.sin(dlat / 2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dlng / 2) * Math.sin(dlng / 2);
-		var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-		var km = r * c;
- 
-		var dist = (miles ? (km * 0.621371192) : km);
-		return dist.toFixed(1);
-	}
-  
-  
-	function showPosition(position) {
+function getLocation() {
+	if (navigator.geolocation) {
+		navigator.geolocation.watchPosition(showPosition);
+	}else{y.innerHTML="Geolocation is not supported by this browser.";}
+}
+
+function distance(lat1, lng1, lat2, lng2) {
+			var miles = true;
+			var pi80 = Math.PI / 180;
+			var lat1 = lat1 * pi80;
+			var lng1 = lng1 * pi80;
+			var lat2 = lat2 * pi80;
+			var lng2 = lng2 * pi80;
+		
+	 
+			var r = 6372.797; // mean radius of Earth in km
+			console.log("r:"+r);
+			var dlat = lat2 - lat1;
+			var dlng = lng2 - lng1;
+			var a = Math.sin(dlat / 2) * Math.sin(dlat / 2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dlng / 2) * Math.sin(dlng / 2);
+			var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+			var km = r * c;
+	 
+			var dist = (miles ? (km * 0.621371192) : km);
+			return dist.toFixed(1);
+}
+
+function showPosition(position) {
 	  	y.innerHTML="Latitude: " + position.coords.latitude + 
 	  	"<br>Longitude: " + position.coords.longitude;	
   
@@ -424,31 +399,11 @@ $(document).ready(function(){
 	  	var setHome = "<a id='setHomeLink' href='postlandr.php?action=set-home&lat=" + lati + "&lng=" + lng + "'>Set home</a>";
   		$("#linkToSetHome").html(setHome);
   		
-	  	var stuff = distance("<?php echo $latHome; ?>","<?php echo $lngHome; ?>",lati,lng);
+	  	//var stuff = distance("<?php echo $latHome; ?>","<?php echo $lngHome; ?>",lati,lng); // original
+		var stuff = distance(myCoords[0],myCoords[1],lati,lng); //trying explode
 	  	$("#jqd").text(stuff);
-	}
-	
-    $("#locationNow").click(function(){
-        $("#demo").addClass("blue");
-        getLocation();
-    });	
-    
-    $('#jqd').append(getLocation());
-	
-	$(document).on("click","#setHomeLink",function(){
-		var r = confirm("Reset home?");
-		if (r==true) {
-			x="You pressed OK!";
-		} else {
-			x="You pressed Cancel!";
-			return false;
-		}
-		alert(x);
-		
-	});
-	
-	// END -- calculate distance
-  	
+}*/
 </script>
+
 </body>
 </html>
