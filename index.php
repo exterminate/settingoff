@@ -17,8 +17,8 @@ class MyDB extends SQLite3 {
     )');
 
 //today's date and time need to go here
-$todayDate = date("j F Y");
-$todayTime = date("H:i");
+$todayDate = date("F j Y");
+$todayTime = date("H:i:00");
 
 /* Random functions */
 
@@ -88,8 +88,14 @@ if(isset($_POST['addAssoc'])) {
 if(isset($_GET['set'])) {
 
 	if($_GET['set'] == "home") {
-		$lat = $_GET['lat'];
-		$lon = $_GET['lon'];
+		if(isset($_GET['lat']))
+			$lat = $_GET['lat'];
+		else
+			$lat="";
+		if(isset($_GET['lon']))		
+			$lon = $_GET['lon'];
+		else
+			$lon='';	
 		$home = $lat.";".$lon;
 		if (preg_match('/[A-Za-z0-9]/', $_GET['id']))
 			$id = $_GET['id'];
@@ -151,6 +157,11 @@ class Person {
             if($row['date'] != $todayDate){
                 return "<div class=''><p>Set off home</p><a href='index.php?id=".$this->id."&set=off'>Set off</a></div>";
             }else{
+				/*
+				
+				@@@ - Matt here's where you need the JS to calculate time
+				
+				*/
                 return "
 				<div class=''>
 					<p id='time-left'>".$row['date']." ".$row['time'].":00</p>
@@ -163,6 +174,13 @@ class Person {
         }
     }
 	
+	
+	/*
+	
+	@@@ - Matt, this method has all the bits for the friends (or assocs) 
+	You can have four friends hence the repetative code
+	
+	*/
 	function showAssoc($db) {
 		$result = $db->query("SELECT * FROM goinghome WHERE ID='$this->id'");
 		$arbNum = 1;
